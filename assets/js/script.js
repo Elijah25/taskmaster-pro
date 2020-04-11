@@ -19,10 +19,11 @@ var createTask = function(taskText, taskDate, taskList) {
 };
 
 var loadTasks = function() {
+  console.log(JSON.parse(localStorage.getItem("tasks")))
   tasks = JSON.parse(localStorage.getItem("tasks"));
-
+  console.log(tasks);
   // if nothing in localStorage, create a new object to track all task status arrays
-  if (!tasks) {
+  if (tasks == null) {
     tasks = {
       toDo: [],
       inProgress: [],
@@ -30,6 +31,7 @@ var loadTasks = function() {
       done: []
     };
   }
+  console.log(tasks)
 
   // loop over object properties
   $.each(tasks, function(list, arr) {
@@ -45,8 +47,93 @@ var saveTasks = function() {
   localStorage.setItem("tasks", JSON.stringify(tasks));
 };
 
+$(".list-group").on("click", "p", function() {
+  var text = $(this)
+    .text()
+    .trim();
+  console.log(text);
+  var textInput = $("<textarea>")
+    .addClass("form-control")
+    .val(text);
+  $(this).replaceWith(textInput);
+  textInput.trigger("focus");
+});
 
+$(".list-group").on("blur", "textarea", function() {
+  // get the textarea's current value/text
+  var text = $(this)
+    .val()
+    .trim();
 
+  // get teh paren ul's id attribute
+  var status = $(this)
+    .closest(".list-group")
+    .attr("id")
+    .replace("list-", "");
+
+  // get the tasks' position in the list of other li elements
+  var index = $(this)
+    .closest(".list-group-item")
+    .index();
+
+  tasks[status][index].text = text;
+  saveTasks();
+
+  //recreate p element
+  var taskP = $("<p>")
+    .addClass("m-1")
+    .text(text);
+
+  // replace textarea with p element
+  $(this).replaceWith(ta)
+});
+
+//due date was clicked 
+$(".list-group").on("click", "span", function() {
+  // get current test
+  var date = $(this)
+    .text()
+    .trim();
+
+  // create new input element
+  var dateInput = $("<input>")
+    .attr("type", "text")
+    .addClass("form-control")
+    .val(date);
+
+  // swap out elements
+  $(this).replaceWith(dateInput);
+
+  // automatically focus on new element
+  dateInput.trigger("focus");
+});
+
+// value of due date was changed
+$(".list-group").on("blur", "input[type='text']", function() {
+  // get current text
+  var date = $(this)
+    .val()
+    .trim();
+
+  // get the parent ul's id attribute
+  var status = $(this)
+    .closest(".list-group")
+    .attr("id")
+    .replace("list-", "");
+
+  // get teh task's position in the list of other li elements
+  var index = $(this)
+    .closest(".list-group-item")
+    .index();
+
+  //recreate span element with bootstrap classes
+  var taskSpan = $("<span>")
+    .addClass("badge badge-primary badge-pill")
+    .text(date);
+
+  // replace input with span element
+  $(this).replaceWith(taskSpan);
+});
 
 // modal was triggered
 $("#task-form-modal").on("show.bs.modal", function() {
@@ -71,7 +158,7 @@ $("#task-form-modal .btn-primary").click(function() {
 
     // close modal
     $("#task-form-modal").modal("hide");
-
+    console.log(tasks)
     // save in tasks array
     tasks.toDo.push({
       text: taskText,
